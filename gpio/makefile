@@ -1,19 +1,31 @@
-CROSS_COMPILE = 
-CC = $(CROSS_COMPILE)gcc
+CROSS_COMPILE=
 
-CFLAGS = -g -Wall -Werror
+ifeq ($(CC),)
+	CC=$(CROSS_COMPILE)gcc
+endif
 
-default: hello_world
+ifeq ($(CFLAGS),)
+	CFLAGS= -g -Wall -Werror
+endif
 
-all: hello_world
+ifeq ($(LDFLAGS),)
+	LDFLAGS= -lgpiod
+endif
 
-hello_world: hello_world.o
-	$(CC) $< -o $@
-	
-hello_world.o: hello_world.c
-	$(CC) $(CFLAGS) -c $< -o $@
-	
-clean: 
-	rm -f hello_world hello_world.o
+all: gpioreadtest gpiowritetest
+default: gpioreadtest gpiowritetest
 
-.PHONY: clean
+gpioreadtest : gpio_read.o
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o gpioreadtest gpio_read.o $(LDFLAGS)
+
+gpiowritetest : gpio_write.o
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o gpiowritetest gpio_write.o $(LDFLAGS)
+
+gpio_read.o : gpio_read.c
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -c gpio_read.c $(LDFLAGS)
+
+gpio_write.o : gpio_write.c
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -c gpio_write.c $(LDFLAGS)
+
+clean :
+	rm -f gpioreadtest gpiowritetest *.o
