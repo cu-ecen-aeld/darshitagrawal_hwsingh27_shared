@@ -1,6 +1,6 @@
 CC = gcc 
 CFLAGS = -Wall
-LDFLAGS = -lrt -lgpiod
+LDFLAGS = -lrt -lgpiod -pthread
 OBJFILES = gpio_read.o
 TARGET = gpioreadtest
 all: $(TARGET)
