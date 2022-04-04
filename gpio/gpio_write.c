@@ -1,3 +1,8 @@
+/*********************************************************
+ *
+ *  Gpio_write.c - Test file to check working of lgpiod lib
+ *  
+ ********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

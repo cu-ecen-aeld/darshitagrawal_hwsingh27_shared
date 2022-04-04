@@ -1,3 +1,12 @@
+/*********************************************************
+ *
+ *  Gpio_read.c - Test file to check working of lgpiod lib
+ *  
+ *  Reference - https://ostconf.com/system/attachments/
+ *  files/000/001/532/original/
+ *  Linux_Piter_2018_-_New_GPIO_interface_for_linux_userspace.pdf?1541021776
+ *
+ ********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
