@@ -48,16 +48,16 @@ int main()
         return -1;
     }
     
-    data_line = gpiod_chip_get_line(chip, DATA);
-    if(data_line == NULL)
-    {
-        fprintf(stderr, "Error in opening the desired GPIO line. Error = %s", strerror(errno));
-        gpiod_chip_close(chip);
-        return -1;
-    }
-    
     while(1)
     {
+        data_line = gpiod_chip_get_line(chip, DATA);
+    	if(data_line == NULL)
+    	{
+            fprintf(stderr, "Error in opening the desired GPIO line. Error = %s", strerror(errno));
+            gpiod_chip_close(chip);
+            return -1;
+    	}
+    	
         return_value = gpiod_line_request_output(data_line, "humidity_line", 0);
         if(return_value)
         {
@@ -83,6 +83,13 @@ int main()
         }
     	
     	gpiod_line_release(data_line);
+    	data_line = gpiod_chip_get_line(chip, DATA);
+    	if(data_line == NULL)
+    	{
+            fprintf(stderr, "Error in opening the desired GPIO line. Error = %s", strerror(errno));
+            gpiod_chip_close(chip);
+            return -1;
+    	}
     	
         return_value = gpiod_line_request_input(data_line, "humidity_line");
         if(return_value)
