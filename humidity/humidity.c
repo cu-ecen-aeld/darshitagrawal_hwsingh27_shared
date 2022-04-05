@@ -26,12 +26,12 @@ int receive(void)
         usleep(30);
         if(gpiod_line_get_value(data_line) == 1)
         {
-            //printf("\n\rData is HIGH");
+            printf("\n\rData is HIGH");
             rv_data = (rv_data << 1) | (0x01);
         }
         else
         {
-            //printf("\n\rData is LOW");
+            printf("\n\rData is LOW");
             rv_data = rv_data << 1;
         }
         while(gpiod_line_get_value(data_line) == 1);
@@ -43,7 +43,7 @@ int receive(void)
 int main()
 {
     int return_value;
-    //int test = 7;
+    int test = 7;
     
     chip = gpiod_chip_open(GPIO0);
     if(chip == NULL)
@@ -113,7 +113,7 @@ int main()
         temp_int = receive();
         checksum = receive();
     
-        //printf("\n\rTest value = %d", test);
+        printf("\n\rTest value = %d", test);
         printf("\n\rRelative humidity = %d.%d", humidity_int, humidity_dec);
         gpiod_line_release(data_line);
         usleep(1000000);
