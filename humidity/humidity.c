@@ -7,7 +7,7 @@
 #include <gpiod.h>
 
 #define GPIO0 "/dev/gpiochip0"
-#define DATA 6
+#define DATA 5
 
 struct gpiod_chip *chip;
 struct gpiod_line *data_line;
@@ -110,7 +110,7 @@ int main()
         printf("\n\rTest value = %d", test);
         printf("\n\rRelative humidity = %d.%d", humidity_int, humidity_dec);
         gpiod_line_release(data_line);
-        sleep(1);
+        usleep(1000000);
     }
     return 0;
 }
