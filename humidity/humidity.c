@@ -39,6 +39,7 @@ int receive(void)
 int main()
 {
     int return_value;
+    int test = 7;
     
     chip = gpiod_chip_open(GPIO0);
     if(chip == NULL)
@@ -98,6 +99,7 @@ int main()
         humidity_int = receive();
         humidity_dec = receive();
     
+        printf("\n\rTest value = %d", test);
         printf("\n\rRelative humidity = %d.%d", humidity_int, humidity_dec);
         gpiod_line_release(data_line);
         usleep(1000000);
