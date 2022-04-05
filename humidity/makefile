@@ -8,18 +8,18 @@ ifeq ($(CFLAGS),)
 	CFLAGS= -g -Wall -Werror
 endif
 
-ifeq ($(LDFLAGS),)
-	LDFLAGS= -lgpiod
+ifeq ($(LIBS),)
+	LIBS= -lgpiod
 endif
 
 all: humiditytest
 default: humiditytest
 
 humiditytest : humidity.o
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o humiditytest humidity.o $(LDFLAGS)
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o humiditytest humidity.o $(LIBS)
 
 humidity.o : humidity.c
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) -c humidity.c $(LDFLAGS)
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -c humidity.c $(LIBS)
 
 clean :
 	rm -f humiditytest *.o
