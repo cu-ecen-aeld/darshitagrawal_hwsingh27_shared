@@ -78,7 +78,9 @@ int main()
             gpiod_chip_close(chip);
             return -1;
         }
-    
+    	
+    	gpiod_line_release(data_line);
+    	
         return_value = gpiod_line_request_input(data_line, "humidity_line");
         if(return_value)
         {
