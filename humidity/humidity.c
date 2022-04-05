@@ -13,7 +13,7 @@
 struct gpiod_chip *chip;
 struct gpiod_line *data_line;
 
-int humidity_int, humidity_dec;
+int humidity_int;
 
 int receive(void)
 {
@@ -33,8 +33,8 @@ int receive(void)
             rv_data = rv_data << 1;
         }
         while(gpiod_line_get_value(data_line) == 1);
-        printf("\n\r%d", rv_data);
     }
+    printf("\n\r%d", rv_data);
     return rv_data;
 }
 
@@ -106,7 +106,7 @@ int main()
         while(gpiod_line_get_value(data_line) == 1);
     
         humidity_int = receive();
-        humidity_dec = receive();
+        //humidity_dec = receive();
     
         printf("\n\rTest value = %d", test);
         printf("\n\rRelative humidity = %d", humidity_int);
