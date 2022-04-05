@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <syslog.h>
 #include <gpiod.h>
 
 #define GPIO0 "/dev/gpiochip0"
@@ -108,7 +109,8 @@ int main()
         humidity_dec = receive();
     
         printf("\n\rTest value = %d", test);
-        printf("\n\rRelative humidity = %d.%d", humidity_int, humidity_dec);
+        syslog(LOG_CRIT, "Relative Humidity = %d.%d", humidity_int, humidity_dec);
+        printf("\n\rRelative humidity = %d", humidity_int);
         gpiod_line_release(data_line);
         usleep(1000000);
     }
