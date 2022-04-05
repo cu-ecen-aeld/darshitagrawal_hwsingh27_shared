@@ -23,10 +23,12 @@ int receive(void)
         usleep(30);
         if(gpiod_line_get_value(data_line) == 1)
         {
+            printf("\n\rData is HIGH");
             rv_data = (rv_data << 1) | (0x01);
         }
         else
         {
+            printf("\n\rData is LOW");
             rv_data = rv_data << 1;
         }
         while(gpiod_line_get_value(data_line) == 1);
@@ -97,6 +99,7 @@ int main()
         humidity_dec = receive();
     
         printf("\n\rRelative humidity = %d.%d", humidity_int, humidity_dec);
+        gpiod_line_release(data_line);
         usleep(1000000);
     }
     return 0;
