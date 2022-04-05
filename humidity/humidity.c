@@ -23,12 +23,12 @@ int receive(void)
         usleep(30);
         if(gpiod_line_get_value(data_line) == 1)
         {
-            printf("\n\rData is HIGH");
+            //printf("\n\rData is HIGH");
             rv_data = (rv_data << 1) | (0x01);
         }
         else
         {
-            printf("\n\rData is LOW");
+            //printf("\n\rData is LOW");
             rv_data = rv_data << 1;
         }
         while(gpiod_line_get_value(data_line) == 1);
