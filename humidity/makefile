@@ -9,7 +9,7 @@ ifeq ($(CFLAGS),)
 endif
 
 ifeq ($(LIBS),)
-	LIBS= -lgpiod
+	LIBS= -lpigpio -lpthread
 endif
 
 all: humiditytest
