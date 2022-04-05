@@ -108,8 +108,8 @@ int main()
         humidity_int = receive();
         //humidity_dec = receive();
     
-        printf("\n\rTest value = %d", test);
-        printf("\n\rRelative humidity = %d", humidity_int);
+        //printf("\n\rTest value = %d", test);
+        //printf("\n\rRelative humidity = %d", humidity_int);
         gpiod_line_release(data_line);
         usleep(1000000);
     }
