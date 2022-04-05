@@ -7,7 +7,7 @@
 #include <gpiod.h>
 
 #define GPIO0 "/dev/gpiochip0"
-#define DATA (5)
+#define DATA 6
 
 struct gpiod_chip *chip;
 struct gpiod_line *data_line;
@@ -32,6 +32,7 @@ int receive(void)
             rv_data = rv_data << 1;
         }
         while(gpiod_line_get_value(data_line) == 1);
+        printf("\n\r%d", rv_data);
     }
     return rv_data;
 }
@@ -81,7 +82,7 @@ int main()
             gpiod_chip_close(chip);
             return -1;
         }
-    	
+    	usleep(25);
     	gpiod_line_release(data_line);
     	data_line = gpiod_chip_get_line(chip, DATA);
     	if(data_line == NULL)
@@ -91,7 +92,7 @@ int main()
             return -1;
     	}
     	
-        return_value = gpiod_line_request_input(data_line, "humidity_line");
+        return_value = gpiod_line_request_input(data_line, "humidity");
         if(return_value)
         {
             fprintf(stderr, "Error in setting the line as input. Error = %s", strerror(errno));
@@ -109,7 +110,7 @@ int main()
         printf("\n\rTest value = %d", test);
         printf("\n\rRelative humidity = %d.%d", humidity_int, humidity_dec);
         gpiod_line_release(data_line);
-        usleep(1000000);
+        sleep(1);
     }
     return 0;
 }
