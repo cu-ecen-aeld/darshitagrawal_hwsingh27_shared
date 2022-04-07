@@ -141,7 +141,7 @@ int main( int argc, char **argv) {
     gpioSetAlertFunc( pin, pulse_reader);
     
     // Repeat until tired
-    for (;;) {
+    for (int i = 0; i < 50; i++) {
 
 	// This just initiates the reading and returns, it will take around 20ms.
 	// The actual reading takes place in the pulse_reader alert function in a
@@ -150,7 +150,7 @@ int main( int argc, char **argv) {
 
 	gpioDelay( 100*1000); // wait 1/10 sec between tries
     }
-
+    cleanup();
     return 0;
 }
 
