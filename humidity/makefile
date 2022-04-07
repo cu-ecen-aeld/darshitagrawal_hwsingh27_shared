@@ -5,17 +5,17 @@ ifeq ($(CC),)
 endif
 
 ifeq ($(CFLAGS),)
-	CFLAGS= -g -Wall -Werror
+	CFLAGS= -g -Wall
 endif
 
 ifeq ($(LIBS),)
-	LIBS= -lgpiod -lpthread
+	LIBS= -lpigpio -lpthread
 endif
 
 all: humiditytest
 default: humiditytest
 
-humiditytest : humidity.o
+humiditytest : humidity.o 
 	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o humiditytest humidity.o $(LIBS)
 
 humidity.o : humidity.c
