@@ -1,156 +1,122 @@
-//
-// Copyright 2018, Jim Studt jim@studt.net
-// SPDX-License-Identifier: BSD-3-Clause
-//
-
-#include <pigpio.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <limits.h>
+#include <signal.h>
 
-// Maybe you want to pass this in on the compile command?
-// NOTE: This is the Broadcom pin number, not the Wiring pin number
-#ifndef DHTPIN
-#define DHTPIN 4
-#endif
+#include <pigpio.h>
 
-static unsigned cleanupPin = UINT_MAX;
-static bool verbose = false;
+/*
+# dhtxx2.c
+# 2019-3-3
+# Public Domain
 
-int read_dht11( unsigned pin) {
-    // set pin to output, we keep it at LOW all the time and use the pullup.
-    gpioSetMode( pin, PI_OUTPUT);
+gcc -Wall -pthread -o dhtxx2 dhtxx2.c -lpigpio -lrt
 
-    // send a low pulse, > 18ms according to datasheet
-    gpioDelay( 19*1000);  // may well be longer, we probably get pre-empted.
-    
-    // turn pin back to input
-    gpioSetMode( pin, PI_INPUT);
+sudo ./dhtxx2       # Usage
+sudo ./dhtxx2 port  # get 1-wire data from port
+*/
 
-    return 0;
+uint32_t tick[85];
+int  tick_index=0;
+
+void aFunction(int gpio, int level, uint32_t tick_)
+{
+   tick[tick_index]=tick_;
+   tick_index += 1;
 }
 
+int main(int argc, char *argv[])
+{
+   int port;
+   int bits[40];
+   int humid_1, humid_2, temp_1, temp_2, check_sum;
+   double humid, temp;
+
+   if (argc != 2)
+   {
+       printf("Usage: sudo ./dhtxx port\n");
+       printf("port: BCM GPIO port number\n");
+       printf("Example: sudo ./dhtxx 24\n");
+
+       return 0;
+   }
+   else
+   {
+      port = atoi(argv[1]);
+   }
+
+   if (gpioInitialise() < 0) return -1;
+
+   gpioSetMode(port, PI_OUTPUT); //port for output
+   gpioWrite(port, 0); // set low
+   gpioSleep(PI_TIME_RELATIVE, 0, 18000); // > 18ms
+   gpioWrite(port, 1);
+   gpioSetMode(port, PI_INPUT); // port for input
+
+   // call aFunction whenever GPIO 24 changes state
+   gpioSetAlertFunc(port,aFunction);
+   gpioSleep(PI_TIME_RELATIVE, 0, 5000); // sleep for 5000us
+
+   gpioTerminate();
 
 
-static void cleanup(void) {
-    // This gets registered with atexit() to run at program termination.
-    // Be aware that there are signals which will kill us too dead to run
-    // this function, so you might leave a pin turned on.
-    if ( verbose) fprintf(stderr,"... cleanup()\n");
-    
-    if ( cleanupPin != UINT_MAX) gpioSetPullUpDown( cleanupPin, PI_PUD_OFF);
-    gpioTerminate();
+   // raw tick
+   // printf("tick amount =%d\n", tick_index);
+
+   for(int i=0; i<tick_index-1;i++) tick[i]=tick[i+1]-tick[i]; // convert into intervals
+   //for(int i=0;i<tick_index-1;i++) printf("%d ",tick[i]);
+   //printf("\n");
+
+   for(int i=0;i<40;i++) bits[i] = ((tick[i*2+3]>tick[i*2+4])?0:1); // convert into bits
+   //for(int i=0;i<40;i++) printf("%d ",bits[i]);
+   //printf("\n");
+
+   humid_1=0;
+   for(int i=0;i<8;i++){
+       humid_1 <<= 1;
+       humid_1 += bits[i];
+   }
+
+   humid_2=0;
+   for(int i=0;i<8;i++){
+       humid_2 <<= 1;
+       humid_2 += bits[i+8];
+   }
+   temp_1=0;
+   for(int i=0;i<8;i++){
+       temp_1 <<= 1;
+       temp_1 += bits[i+16];
+   }
+
+   temp_2=0;
+   for(int i=0;i<8;i++){
+       temp_2 <<= 1;
+       temp_2 += bits[i+24];
+   }
+
+   check_sum=0;
+   for(int i=0;i<8;i++){
+       check_sum <<= 1;
+       check_sum += bits[i+32];
+   }
+//   printf("%d %d %d %d %d\n",humid_1,humid_2,temp_1,temp_2,check_sum);
+   if(((humid_1+humid_2+temp_1+temp_2) & 0xff) == check_sum){
+       if((humid_2==0) && (temp_2 == 0)){
+           //DHT11
+           humid=humid_1;
+           temp=temp_1;
+       }else{
+           //DHT22
+           humid=(humid_1*256+humid_2)/10.0;
+           if((temp_1 & 0x80)==0){
+               temp=(temp_1*256+temp_2)/10.0; //temp>=0
+           }else{
+               temp=-((temp_1 & 0x7F)*256+temp_2)/10; //temp<0
+           };
+       };
+       printf("Humidity = %3.1f %%RH, Temperature = %-2.1f degree Celsus\n",humid,temp);
+       return 0;
+   }else{
+       printf("Wrong check sum!\n");
+       return -1;
+   }
 }
-
-enum pulse_state { PS_IDLE = 0, PS_PREAMBLE_STARTED, PS_DIGITS };
-
-static void pulse_reader( int gpio, int level, uint32_t tick) {
-
-    // *******
-    // PAY ATTENTION: This runs in a different thread from your main thread.
-    //
-    // Do not interact with things owned by the main thread without understanding
-    // locks and threaded programming.
-    // *******
-
-    // ******
-    // Be Aware: the tick is extremly erratic. Notice that for the 80µS pulses
-    //           I am testing 70 < tick < 95. The spread is really that wide.
-    //           If you run with 'verbose' on you can see the pulse lengths and
-    //           see for yourself. I feel this is some problem in the Pi and the
-    //           library rather than the device, but I haven't pulled out a scope
-    //           to check.
-    // ******
-    
-    static uint32_t lastTick = 0;
-    static enum pulse_state state = PS_IDLE;
-    static uint64_t accum = 0;
-    static int count = 0;
-    uint32_t len = tick - lastTick; // not handling rollover, you will get a bad read on that one
-    lastTick = tick;
-
-    switch ( state) {
-      case PS_IDLE:
-	// In this state we haven't made sense out of anything we have seen.
-	// An 80µS low pulse could be the start of a preamble.
-	if (level == 1 && len > 70 && len < 95) state = PS_PREAMBLE_STARTED;
-	else state = PS_IDLE;
-	break;
-      case PS_PREAMBLE_STARTED:
-	// An 80µS high pulse completes the preamble. Anything else and we are back to idle.
-	if (level == 0 && len > 70 && len < 95) {
-	    state = PS_DIGITS;
-	    accum = 0;
-	    count= 0;
-	} else state = PS_IDLE;
-	break;
-      case PS_DIGITS:
-	// As long as we receive digits, accumulate them into our 64 bit number
-	if (level == 1 && len >= 35 && len <= 65) ;  // ok, it is the low before the content
-	else if (level == 0 && len >= 15 && len <= 35) { accum <<= 1; count++; }
-	else if (level == 0 && len >= 60 && len <= 80) { accum = (accum<<1)+1; count++; }
-	else state = PS_IDLE;  // not a valid bit, back to idle.
-
-	// When we get our 40th bit we can process the data
-	if ( count == 40) {
-	    state = PS_IDLE;  // done with bits, going back to idle
-
-	    uint8_t parity = (accum & 0xff);
-	    uint8_t tempLow = ((accum>>8) & 0xff);
-	    uint8_t tempHigh = ((accum>>16) & 0xff);
-	    uint8_t humLow = ((accum>>24) & 0xff);
-	    uint8_t humHigh = ((accum>>32) & 0xff);
-
-	    uint8_t sum = tempLow + tempHigh + humLow + humHigh;
-	    bool valid = (parity == sum);
-	    
-	    printf("got 40 digits %d.%d hum, %d.%d temp, %s\n", humHigh, humLow, tempHigh, tempLow, (valid ? "OK" : "BAD"));
-	}
-
-	break;
-    }
-
-	
-    if ( verbose) printf("pulse %c %4uµS state=%d digits=%d\n", (level==0 ? 'H' : (level==1?'L':'W') ), len, state, count);
-}
-
-int main( int argc, char **argv) {
-    unsigned pin = DHTPIN;
-    
-    // maybe set 'pin' from a command line arg here
-
-    // Get the GPIO ready
-    if (gpioInitialise() == PI_INIT_FAILED) {
-	fprintf(stderr, "failed to initialize GPIO\n");
-	exit(EXIT_FAILURE);
-    }
-
-    // Make sure we turn off gpio on our way out
-    atexit(cleanup);
-    
-    // set pin to have a pullup resistor
-    gpioSetMode( pin, PI_INPUT);
-    gpioSetPullUpDown( pin, PI_PUD_UP);
-    gpioWrite( pin, 0);           // We keep it set to LOW so anytime we make it an output it pulls down
-    cleanupPin = pin;      // hang on to this so cleanup() can find it
-    
-    // set the watchdog to 50ms to cap long pulses
-    gpioSetWatchdog(pin, 50);
-
-    gpioSetAlertFunc( pin, pulse_reader);
-    
-    // Repeat until tired
-    for (int i = 0; i < 50; i++) {
-
-	// This just initiates the reading and returns, it will take around 20ms.
-	// The actual reading takes place in the pulse_reader alert function in a
-	// different thread and will complete in the future. Good luck with that.
-	read_dht11(pin);
-
-	gpioDelay( 100*1000); // wait 1/10 sec between tries
-    }
-    cleanup();
-    return 0;
-}
-
