@@ -27,7 +27,7 @@ int main()
     memset(&servaddr, 0, sizeof(servaddr));
     
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr("10.0.0.56");
+    servaddr.sin_addr.s_addr = inet_addr("10.0.0.55");
     servaddr.sin_port = htons(PORT);
     
     if(connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0)
