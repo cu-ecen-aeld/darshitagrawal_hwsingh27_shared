@@ -9,11 +9,14 @@
 
 #define GPIO0 "/dev/gpiochip0"
 #define DATA 5
+#define MAXTIMINGS 50
+#define MIN_CHECK 50
+#define HIGH 1
 
 struct gpiod_chip *chip;
 struct gpiod_line *data_line;
 
-int humidity_int = 0, humidity_dec = 0;
+int dht_data[5] = {0};
 int temp_int = 0, temp_dec = 0;
 int checksum = 0;
 
@@ -43,7 +46,10 @@ int receive(void)
 int main()
 {
     int return_value;
-    int test = 7;
+    //int test = 7;
+    uint8_t i, counter;
+    uint8_t index = 0;
+    uint8_t laststate = HIGH;
     
     chip = gpiod_chip_open(GPIO0);
     if(chip == NULL)
@@ -85,7 +91,7 @@ int main()
             gpiod_chip_close(chip);
             return -1;
         }
-    	usleep(25);
+    	usleep(40);
     	gpiod_line_release(data_line);
     	data_line = gpiod_chip_get_line(chip, DATA);
     	if(data_line == NULL)
@@ -102,19 +108,36 @@ int main()
             gpiod_chip_close(chip);
             return -1;
         }
-    
-        while(gpiod_line_get_value(data_line) == 1);
-        while(gpiod_line_get_value(data_line) == 0);
-        while(gpiod_line_get_value(data_line) == 1);
-    
-        humidity_int = receive();
-        humidity_dec = receive();
-        temp_int = receive();
-        temp_int = receive();
-        checksum = receive();
-    
-        printf("\n\rTest value = %d", test);
-        printf("\n\rRelative humidity = %d.%d", humidity_int, humidity_dec);
+        
+        for(i = 0; i <= MAXTIMINGS; i++)
+        {
+            counter = 0;
+            while(gpiod_line_get_value(data_line) == laststate)
+            {
+                counter++;
+                usleep(1);
+                if(counter == 255)
+                {
+                    break;
+                }
+            }
+            laststate = gpiod_line_get_value(data_line);
+            if(counter == 255)
+            {
+                break;
+            }
+            if((i >= 4) && (i % 2 == 0))
+            {
+                dht_data[index/8] <<= 1;
+                if(counter > MIN_CHECK)
+                {
+                    dht_data[index/8] |= 1;
+                }
+                index++;
+             }
+         }
+                
+        printf("\n\rRelative humidity = %d.%d", dht_data[0], dht_data[1]);
         gpiod_line_release(data_line);
         usleep(1000000);
     }
