@@ -16,7 +16,7 @@
 struct gpiod_chip *chip;
 struct gpiod_line *data_line;
 
-int dht_data[5] = {0};
+int dht_data[1] = {0};
 int temp_int = 0, temp_dec = 0;
 int checksum = 0;
 
@@ -137,7 +137,7 @@ int main()
              }
          }
                 
-        printf("\n\rRelative humidity = %d.%d", dht_data[0], dht_data[1]);
+        printf("\n\rRelative humidity = %d", dht_data[0]);
         gpiod_line_release(data_line);
         usleep(1000000);
     }
