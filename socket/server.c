@@ -1,97 +1,100 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
 #include <netdb.h>
-#include <arpa/inet.h>
+#include <stdio.h>
 #include <sys/types.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 
-#define PORT "8080"
-#define BACKLOG (5)
-
+#define SIZE 80
+#define PORT 8080
+#define SA struct sockaddr
+   
+void func(int sockfd)
+{
+    char buffer[]="This is sample data.";
+ 
+    while(1) 
+    {
+        write(sockfd, buffer, sizeof(buffer)); // send the message to client
+        
+        //put a hardspin loop as a delay
+        for (int i=0; i<500; i++)
+            for(int j=0; j<100000; j++);
+    }
+}
+        
 int main()
 {
-    int sockfd, new_fd;
-    int yes = 1;
-    struct addrinfo hints, *servinfo, *p;
-    struct sockaddr_storage their_addr;
-    socklen_t sin_size;
-    //char s[INET_ADDRSTRLEN];
-    int rv;
-    
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-    
-    if((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0)
+    int sockfd, connfd, len;
+    struct sockaddr_in servaddr, cli;
+   
+    // 1. create a socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0); 
+    if (sockfd == -1) 
     {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return -1;
+        printf("Error! socket() creation failed\n");
+        exit(0);
     }
-    
-    for(p = servinfo; p != NULL; p = p->ai_next)
+    else
     {
-        if((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
-        {
-            perror("Error in creating the socket. Error: ");
-            continue;
-        }
-        if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
-        {
-            perror("Error in setsockopt. Error: ");
-            exit(1);
-        }
-        if(bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
-        {
-            close(sockfd);
-            perror("Error in bind(). Error:");
-            continue;
-        }
+        printf("socket() creation succeeded \n");
+    }
+    bzero(&servaddr, sizeof(servaddr)); // reset string
+   
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr.sin_port = htons(PORT);
+   
+    // 2. Bind the socket
+    
+    if ((setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int))) == -1) {
+        printf("socket opt failed...\n");
+        exit(0);
+    }
+    else
+        printf("Socket opt succeeded..\n");
         
-        break;
-    }
-    
-    freeaddrinfo(servinfo);
-    
-    if(p == NULL)
+    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) 
     {
-        fprintf(stderr, "\n\rServer failed to bind.");
-        exit(1);
-    }
-    if(listen(sockfd, BACKLOG) == -1)
-    {
-        perror("Error in listening for socket. Error: ");
-        exit(1);
-    }
-    
-    sin_size = sizeof(their_addr);
-    printf("\n\rWaiting for connections...");
-    new_fd = accept(sockfd, (struct sockaddr*)&their_addr, &sin_size);
-    if(new_fd == -1)
-    {
-        perror("Error in accepting the connection. Error: ");
-        exit(1);
+        printf("Error! bind() socket failed\n");
+        exit(0);
     }
     else
     {
-        printf("\n\rConnection accepted.");
+        printf("bind() socket succeeded\n");
     }
-    
-    if(send(new_fd, "Hello, World!", 13, 0) == -1)
+   
+    // 3. Listen on the socket
+    if ((listen(sockfd, 5)) != 0) 
     {
-        perror("Error in sending the data. Error: ");
+        printf("Error! Socket Listen failed\n");
+        exit(0);
     }
     else
     {
-        printf("\n\rString sent.");
+         printf("Socket Listen succeeded. Server Listening..\n");
     }
-    close(new_fd);
-    return 0;
+
+    len = sizeof(cli);
+   
+    //4. Accept the socket  
+    connfd = accept(sockfd, (SA*)&cli, (unsigned int *)&len);
+    if (connfd < 0) 
+    {
+        printf("Error: accept() socket failed\n");
+        exit(0);
+    }
+    else
+    {
+        printf("accept() socket succeeded\n");
+    }
+   
+    //5. Call to function for server- client communication
+    func(connfd);
+   
+    //6. Close the socket
+    close(sockfd);
 }
-    
-    
-    
