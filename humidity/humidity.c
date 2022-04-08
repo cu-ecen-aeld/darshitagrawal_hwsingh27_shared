@@ -1,122 +1,69 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-
-#include <pigpio.h>
-
 /*
-# dhtxx2.c
-# 2019-3-3
-# Public Domain
+ * Reference: https://olegkutkov.me/2018/02/21/htu21d-raspberry-pi/    
+ * Author: Darshit Agrawal
+ */
 
-gcc -Wall -pthread -o dhtxx2 dhtxx2.c -lpigpio -lrt
+#include <stdint.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <linux/i2c-dev.h>
+#include <linux/i2c.h>
 
-sudo ./dhtxx2       # Usage
-sudo ./dhtxx2 port  # get 1-wire data from port
-*/
+#define I2C_DEV_PATH 			("/dev/i2c-1")
 
-uint32_t tick[85];
-int  tick_index=0;
-
-void aFunction(int gpio, int level, uint32_t tick_)
+int main ()
 {
-   tick[tick_index]=tick_;
-   tick_index += 1;
-}
+  int fdev = open (I2C_DEV_PATH, O_RDWR);	// open i2c bus
 
-int main(int argc, char *argv[])
-{
-   int port;
-   int bits[40];
-   int humid_1, humid_2, temp_1, temp_2, check_sum;
-   double humid, temp;
+  if (fdev < 0)
+    {
+      fprintf (stderr, "Failed to open I2C interface %s Error: %s\n", I2C_DEV_PATH, strerror (errno));
+      return -1;
+    }
 
-   if (argc != 2)
-   {
-       printf("Usage: sudo ./dhtxx port\n");
-       printf("port: BCM GPIO port number\n");
-       printf("Example: sudo ./dhtxx 24\n");
+  unsigned char i2c_addr = 0x40;
 
-       return 0;
-   }
-   else
-   {
-      port = atoi(argv[1]);
-   }
+// set slave device address 0x40
+  if (ioctl (fdev, I2C_SLAVE, i2c_addr) < 0)
+    {
+      fprintf (stderr, "Failed to select I2C slave device! Error: %s\n", strerror (errno));
+      return -1;
+    }
 
-   if (gpioInitialise() < 0) return -1;
+  uint8_t buf[1];
+  buf[0] = 0xE3;
 
-   gpioSetMode(port, PI_OUTPUT); //port for output
-   gpioWrite(port, 0); // set low
-   gpioSleep(PI_TIME_RELATIVE, 0, 18000); // > 18ms
-   gpioWrite(port, 1);
-   gpioSetMode(port, PI_INPUT); // port for input
+  write (fdev, buf, 1);
 
-   // call aFunction whenever GPIO 24 changes state
-   gpioSetAlertFunc(port,aFunction);
-   gpioSleep(PI_TIME_RELATIVE, 0, 5000); // sleep for 5000us
+// device response, 14-bit ADC value:
+//  first 8 bit part ACK  second 8 bit part        CRC
+// [0 1 2 3 4 5 6 7] [8] [9 10 11 12 13 14 15 16] [17 18 19 20 21 22 23 24]
+// bit 15 - measurement type (‘0’: temperature, ‘1’: humidity)
+// bit 16 - currently not assigned
 
-   gpioTerminate();
+  uint8_t buf1[3] = { 0 };
+
+  read (fdev, buf1, 3);
+
+  uint16_t sensor_data = (buf1[0] << 8 | buf1[1]) & 0xFFFC;
+
+// temperature
+  double sensor_tmp = sensor_data / 65536.0;
+  double result = -46.85 + (175.72 * sensor_tmp);
+
+//printf("Temperature: %.2f C\n", result);
 
 
-   // raw tick
-   // printf("tick amount =%d\n", tick_index);
+// humidity
+  result = -6.0 + (125.0 * sensor_tmp);
 
-   for(int i=0; i<tick_index-1;i++) tick[i]=tick[i+1]-tick[i]; // convert into intervals
-   //for(int i=0;i<tick_index-1;i++) printf("%d ",tick[i]);
-   //printf("\n");
+  printf ("Humidity: %.2f %%\n", result);
 
-   for(int i=0;i<40;i++) bits[i] = ((tick[i*2+3]>tick[i*2+4])?0:1); // convert into bits
-   //for(int i=0;i<40;i++) printf("%d ",bits[i]);
-   //printf("\n");
-
-   humid_1=0;
-   for(int i=0;i<8;i++){
-       humid_1 <<= 1;
-       humid_1 += bits[i];
-   }
-
-   humid_2=0;
-   for(int i=0;i<8;i++){
-       humid_2 <<= 1;
-       humid_2 += bits[i+8];
-   }
-   temp_1=0;
-   for(int i=0;i<8;i++){
-       temp_1 <<= 1;
-       temp_1 += bits[i+16];
-   }
-
-   temp_2=0;
-   for(int i=0;i<8;i++){
-       temp_2 <<= 1;
-       temp_2 += bits[i+24];
-   }
-
-   check_sum=0;
-   for(int i=0;i<8;i++){
-       check_sum <<= 1;
-       check_sum += bits[i+32];
-   }
-//   printf("%d %d %d %d %d\n",humid_1,humid_2,temp_1,temp_2,check_sum);
-   if(((humid_1+humid_2+temp_1+temp_2) & 0xff) == check_sum){
-       if((humid_2==0) && (temp_2 == 0)){
-           //DHT11
-           humid=humid_1;
-           temp=temp_1;
-       }else{
-           //DHT22
-           humid=(humid_1*256+humid_2)/10.0;
-           if((temp_1 & 0x80)==0){
-               temp=(temp_1*256+temp_2)/10.0; //temp>=0
-           }else{
-               temp=-((temp_1 & 0x7F)*256+temp_2)/10; //temp<0
-           };
-       };
-       printf("Humidity = %3.1f %%RH, Temperature = %-2.1f degree Celsus\n",humid,temp);
-       return 0;
-   }else{
-       printf("Wrong check sum!\n");
-       return -1;
-   }
+  return 0;
 }

@@ -1,4 +1,5 @@
-/*https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/*/
+/*https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
+ *Modified by: Darshit Agrawal*/
 
 #include <stdio.h>
 #include <netdb.h>
