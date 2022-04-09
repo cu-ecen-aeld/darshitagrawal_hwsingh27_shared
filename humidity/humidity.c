@@ -37,9 +37,21 @@ if (ioctl(fdev, I2C_SLAVE, i2c_addr) < 0) {
 while(1)
 {
 uint8_t buf[1];
+buf[0] = 0xFE;
+int rv = write(fdev, buf, 1);
+if(rv < 0)
+{
+    printf("\n\rError in writing (Soft reset).");
+}
+usleep(17000);
+
 buf[0] = 0xE5;
 
-write(fdev, buf, 1);
+rv = write(fdev, buf, 1);
+if(rv < 0)
+{
+    printf("\n\rError in writing.");
+}
 
 
 // device response, 14-bit ADC value:
@@ -48,9 +60,9 @@ write(fdev, buf, 1);
 // bit 15 - measurement type (‘0’: temperature, ‘1’: humidity)
 // bit 16 - currently not assigned
 
-uint8_t buf1[2] = { 0 };
+uint8_t buf1[3] = { 0 };
 
-int rv = read(fdev, buf1, 2);
+rv = read(fdev, buf1, 3);
 if (rv < 0)
 {
     printf("\n\rError in reading.");
