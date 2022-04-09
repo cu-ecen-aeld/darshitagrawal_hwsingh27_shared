@@ -53,6 +53,7 @@ if(rv < 0)
     printf("\n\rError in writing.");
 }
 
+sleep(2);
 
 // device response, 14-bit ADC value:
 //  first 8 bit part ACK  second 8 bit part        CRC
