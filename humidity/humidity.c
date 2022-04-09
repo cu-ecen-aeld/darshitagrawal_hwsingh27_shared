@@ -50,8 +50,21 @@ write(fdev, buf, 1);
 
 uint8_t buf1[2] = { 0 };
 
-read(fdev, buf1, 2);
-//msleep(4);
+int rv = read(fdev, buf1, 2);
+if (rv < 0)
+{
+    printf("\n\rError in reading.");
+}
+else if(rv == 0)
+{
+    printf("\n\rNo data was read.");
+}
+else
+{
+    printf("\n\rData was read.");
+}
+
+usleep(4000);
 
 //uint16_t sensor_data = (buf1 [0] << 8 | buf1 [1]) & 0xFFFC;
 uint16_t sensor_data = 0;
