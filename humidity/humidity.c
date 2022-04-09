@@ -34,8 +34,6 @@ if (ioctl(fdev, I2C_SLAVE, i2c_addr) < 0) {
     fprintf(stderr, "Failed to select I2C slave device! Error: %s\n", strerror(errno));
     return -1;
 }
-while(1)
-{
 uint8_t buf[1];
 buf[0] = 0xFE;
 int rv = write(fdev, buf, 1);
@@ -45,6 +43,8 @@ if(rv < 0)
 }
 usleep(17000);
 
+while(1)
+{
 buf[0] = 0xE5;
 
 rv = write(fdev, buf, 1);
@@ -66,6 +66,7 @@ rv = read(fdev, buf1, 3);
 if (rv < 0)
 {
     printf("\n\rError in reading.");
+    perror("Error: ");
 }
 else if(rv == 0)
 {
@@ -85,14 +86,14 @@ sensor_data += buf[1];
 sensor_data &= ~0x003;
 
 // temperature
-double sensor_tmp = sensor_data / 65536;
+//double sensor_tmp = sensor_data / 65536;
 //double result = -46.85 + (175.72 * sensor_tmp);
 
 //printf("Temperature: %.2f C\n", result);
 
 
 // humidity
-double result = -6.0 + (125.0 * sensor_tmp);
+double result = (-6.0 + 125.0/65536 * (double)sensor_data);
 
 printf("Humidity: %.2f %%\n", result);
 sleep(1);
