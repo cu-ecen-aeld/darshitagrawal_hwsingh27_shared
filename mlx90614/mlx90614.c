@@ -106,7 +106,7 @@ int main()
     	temperature = temperature - 273.15;
 
         //logging the temperature
-    	printf("Temperature of the busbar = %04.2f\n", temperature);
+    	//printf("Temperature of the busbar = %04.2f\n", temperature);
 
     	usleep(SLEEP_DURATION); //delay of 1 second
     	memcpy(sensor_buffer, &temperature, sizeof(double));

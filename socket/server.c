@@ -26,6 +26,7 @@ void func(int connfd)
     char buff[sizeof(double)];
     //int n;
     unsigned int priority;
+    double temperature_data;
     // infinite loop for chat
     while(1) 
     {
@@ -34,6 +35,8 @@ void func(int connfd)
 	{
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
 	}
+	memcpy(&temperature_data, buff, sizeof(double));
+	printf("\n\rReceived temperature data is : %0.2lf", temperature_data);
         // read the message from client and copy it in buffer
 	/*recv(connfd, buff, sizeof(buff), 0);
         // print buffer which contains the client contents
