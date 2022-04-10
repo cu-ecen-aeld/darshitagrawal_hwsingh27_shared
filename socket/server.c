@@ -9,29 +9,40 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <mqueue.h>
+#include <errno.h>
 
 #define MAX 80
 #define PORT 8080
 #define SA struct sockaddr
 
+struct mq_attr attr;
+mqd_t mqd;
 // Function designed for chat between client and server.
 void func(int connfd)
 {
-    char buff[MAX];
-    int n;
+    char buff[sizeof(double)];
+    //int n;
+    unsigned int priority;
     // infinite loop for chat
     while(1) 
     {
-	bzero(buff, MAX);
+	//bzero(buff, MAX);
+	if(mq_receive(mqd, buff, sizeof(double), &priority) == -1)
+	{
+	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
+	}
         // read the message from client and copy it in buffer
-	recv(connfd, buff, sizeof(buff), 0);
+	/*recv(connfd, buff, sizeof(buff), 0);
         // print buffer which contains the client contents
 	printf("From client: %s\t To client : ", buff);
 	bzero(buff, MAX);
 	n = 0;
 	// copy server message in the buffer
 	while ((buff[n++] = getchar()) != '\n')
-	    ;
+	    ;*/
 
 	// and send that buffer to client
 	send(connfd, buff, sizeof(buff), 0);
@@ -89,6 +100,12 @@ int main()
     {
 	printf("Server listening..\n");
 	len = sizeof(cli);
+    }
+    
+    mqd = mq_open("/sendmq", O_RDWR);
+    if(mqd == -1)
+    {
+        printf("\n\rError in opening the message queue. Error: %s", strerror(errno));
     }
     // Accept the data packet from client and verification
     connfd = accept(sockfd, (SA*)&cli, (socklen_t*)&len);

@@ -8,6 +8,10 @@ ifeq ($(CFLAGS),)
 	CFLAGS= -g -Wall -Werror
 endif
 
+ifeq ($(LDFLAGS),)
+	LDFLAGS= -lrt
+endif
+
 all: mlx90614test
 default: mlx90614test
 
