@@ -65,7 +65,7 @@ int main()
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
-    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1"); 
+    servaddr.sin_addr.s_addr = inet_addr("10.0.0.56"); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
    
