@@ -16,6 +16,7 @@
 #include <linux/i2c-dev.h>
 #include <linux/i2c.h>
 #include <unistd.h>
+#include <mqueue.h>
 
 /* Macros */
 #define MLX90614_TA 			(0x06) //RAM register
@@ -35,10 +36,16 @@
 #define I2C_SMBUS_WRITE 0 
 #endif
 
+struct mq_attr attr;
+
 typedef union i2c_smbus_data i2c_data;
 
 int main()
 {
+    mqd_t mqd;
+    char sensor_buffer[sizeof(double)];
+    attr.mq_maxmsg = 10;
+    attr.mq_msgsize = sizeof(double);
     // open i2c bus
     int fdev = open(I2C_DEV_PATH, O_RDWR); 
     if (fdev < 0) 
@@ -77,6 +84,11 @@ int main()
         .data = &data
     };
 
+    mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
+    if(mqd == (mqd_t)-1)
+    {
+        printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
+    }
     while(1)
     {
 	// do actual request
@@ -94,11 +106,15 @@ int main()
     	temperature = temperature - 273.15;
 
         //logging the temperature
-    	printf("Temperature of the busbar = %04.2f\n", temperature);
+    	//printf("Temperature of the busbar = %04.2f\n", temperature);
 
     	usleep(SLEEP_DURATION); //delay of 1 second
+    	memcpy(sensor_buffer, &temperature, sizeof(double));
+    	if(mq_send(mqd, sensor_buffer, sizeof(double), 1) == -1)
+    	{
+    	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
+    	}	    
     }
-
     return 0;
 }
 

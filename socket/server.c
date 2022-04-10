@@ -24,6 +24,7 @@ mqd_t mqd;
 void func(int connfd)
 {
     char buff[sizeof(double)];
+    char toClient[30];
     //int n;
     unsigned int priority;
     double temperature_data;
@@ -37,6 +38,7 @@ void func(int connfd)
 	}
 	memcpy(&temperature_data, buff, sizeof(double));
 	printf("\n\rReceived temperature data is : %0.2lf", temperature_data);
+	sprintf(toClient, "Temperature = %0.2lf", temperature_data);
         // read the message from client and copy it in buffer
 	/*recv(connfd, buff, sizeof(buff), 0);
         // print buffer which contains the client contents
@@ -48,14 +50,14 @@ void func(int connfd)
 	    ;*/
 
 	// and send that buffer to client
-	send(connfd, buff, sizeof(buff), 0);
+	send(connfd, toClient, strlen(toClient) + 1, 0);
 
 	// if msg contains "Exit" then server exit and chat ended.
-	if (strncmp("exit", buff, 4) == 0) 
+	/*if (strncmp("exit", buff, 4) == 0) 
 	{
 	    printf("Server Exit...\n");
 	    break;
-	}
+	}*/
     }
 }
 
