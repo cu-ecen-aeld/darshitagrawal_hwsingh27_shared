@@ -37,7 +37,7 @@ void func(int connfd)
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
 	}
 	memcpy(&temperature_data, buff, sizeof(double));
-	printf("\n\rReceived temperature data is : %0.2lf", temperature_data);
+	//printf("\n\rReceived temperature data is : %0.2lf", temperature_data);
 	sprintf(toClient, "Temperature = %0.2lf", temperature_data);
         // read the message from client and copy it in buffer
 	/*recv(connfd, buff, sizeof(buff), 0);

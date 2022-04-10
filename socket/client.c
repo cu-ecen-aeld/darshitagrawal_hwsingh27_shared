@@ -21,7 +21,7 @@
 
 void func(int sockfd)
 {
-    char buff[sizeof(double)];
+    char buff[50];
     //int n;
     while(1) 
     {
