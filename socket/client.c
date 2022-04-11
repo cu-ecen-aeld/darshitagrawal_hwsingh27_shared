@@ -21,18 +21,18 @@
 
 void func(int sockfd)
 {
-    char buff[50];
-    //int n;
+    char buff[MAX];
+    int n;
     while(1) 
     {
-        /*bzero(buff, sizeof(buff));
+        bzero(buff, sizeof(buff));
         printf("Enter the string : ");
         n = 0;
         
         while ((buff[n++] = getchar()) != '\n');
         
         write(sockfd, buff, sizeof(buff));
-        bzero(buff, sizeof(buff));*/
+        bzero(buff, sizeof(buff));
         read(sockfd, buff, sizeof(buff));
         printf("From Server : %s", buff);
         if ((strncmp(buff, "exit", 4)) == 0) 
@@ -65,7 +65,7 @@ int main()
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
-    servaddr.sin_addr.s_addr = inet_addr("10.0.0.56"); 
+    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1"); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
    
