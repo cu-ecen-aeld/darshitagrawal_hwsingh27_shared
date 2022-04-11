@@ -25,14 +25,6 @@ void func(int sockfd)
     //int n;
     while(1) 
     {
-        /*bzero(buff, sizeof(buff));
-        printf("Enter the string : ");
-        n = 0;
-        
-        while ((buff[n++] = getchar()) != '\n');
-        
-        write(sockfd, buff, sizeof(buff));
-        bzero(buff, sizeof(buff));*/
         read(sockfd, buff, sizeof(buff));
         printf("\n\rFrom Server : %s", buff);
         if ((strncmp(buff, "exit", 4)) == 0) 
@@ -40,6 +32,7 @@ void func(int sockfd)
             printf("Client Exit...\n");
             break;
         }
+        sleep(1);
     }
 }
    
