@@ -26,7 +26,7 @@ void func(int sockfd)
     while(1) 
     {
         read(sockfd, buff, sizeof(buff));
-        printf("\n\rFrom Server : %s", buff);
+        printf("\n\r%s", buff);
         if ((strncmp(buff, "exit", 4)) == 0) 
         {
             printf("Client Exit...\n");
