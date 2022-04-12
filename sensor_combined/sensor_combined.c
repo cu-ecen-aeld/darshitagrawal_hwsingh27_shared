@@ -59,7 +59,7 @@ int main()
     mqd_t mqd;
     char sensor_buffer[sizeof(double) + sizeof(double)];
     attr.mq_maxmsg = 10;
-    attr.mq_msgsize = sizeof(double);
+    attr.mq_msgsize = sizeof(double) + sizeof(double);
     // open i2c bus
     int fdev = open(I2C_DEV_PATH, O_RDWR); 
     if (fdev < 0) 

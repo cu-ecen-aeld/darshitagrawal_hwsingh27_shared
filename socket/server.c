@@ -23,7 +23,7 @@ mqd_t mqd;
 // Function designed for chat between client and server.
 void func(int connfd)
 {
-    char buff[70];
+    char buff[sizeof(double) + sizeof(double)];
     char toClient[50];
     //int n;
     unsigned int priority;
