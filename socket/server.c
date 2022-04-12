@@ -23,8 +23,9 @@ mqd_t mqd;
 // Function designed for chat between client and server.
 void func(int connfd)
 {
-    char buff[sizeof(double) + sizeof(double)];
-    char toClient[50];
+    char time_buffer[20];
+    char buff[sizeof(double) + sizeof(double) + sizeof(time_buffer)];
+    char toClient[100];
     //int n;
     unsigned int priority;
     double temperature_data, humidity_data;
@@ -32,14 +33,15 @@ void func(int connfd)
     while(1) 
     {
 	//bzero(buff, MAX);
-	if(mq_receive(mqd, buff, sizeof(double) + sizeof(double), &priority) == -1)
+	if(mq_receive(mqd, buff, sizeof(double) + sizeof(double) + 20, &priority) == -1)
 	{
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
 	}
 	memcpy(&temperature_data, buff, sizeof(double));
 	memcpy(&humidity_data, buff + sizeof(double), sizeof(double));
+	memcpy(time_buffer, buff + sizeof(double) + sizeof(double), sizeof(time_buffer));
 	//printf("\n\rReceived temperature data is : %0.2lf", temperature_data);
-	sprintf(toClient, "Temperature = %0.2lf and Humidity = %0.2lf", temperature_data, humidity_data);
+	sprintf(toClient, "Temperature = %0.2lf and Humidity = %0.2lf and Time = %s", temperature_data, humidity_data, time_buffer);
         // read the message from client and copy it in buffer
 	/*recv(connfd, buff, sizeof(buff), 0);
         // print buffer which contains the client contents
