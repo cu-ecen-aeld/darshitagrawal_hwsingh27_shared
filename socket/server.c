@@ -62,7 +62,7 @@ void func(int connfd)
     unsigned int priority;
     double temperature_data, humidity_data;
     // infinite loop for chat
-    while(1) 
+    while(!signal_indication) 
     {
 	if(mq_receive(mqd, buff, sizeof(double) + sizeof(double), &priority) == -1)
 	{
@@ -162,5 +162,6 @@ int main()
     close(sockfd);
     close(connfd);
     printf("\n\rConnection closed...");
+    return 0;
 }
 
