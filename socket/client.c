@@ -32,7 +32,7 @@ void func(int sockfd)
             printf("Client Exit...\n");
             break;
         }
-        //usleep(500000);
+        usleep(500000);
     }
 }
    
