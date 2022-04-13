@@ -18,7 +18,6 @@
 #include <linux/i2c-dev.h>
 #include <linux/i2c.h>
 #include <unistd.h>
-#include <time.h>
 #include <mqueue.h>
 
 /* Macros */
@@ -51,7 +50,6 @@ int main()
 {
     uint8_t buf[1];
     uint8_t buf1[3] = {0};
-    char time_buffer[20];
     uint16_t humidity_sensor_data = 0;
     double temperature, humidity;
     int rv;
@@ -59,11 +57,9 @@ int main()
     char command;
     uint8_t soft_reset_flag = 1;
     mqd_t mqd;
-    struct tm* display_time;
-    time_t t;
-    char sensor_buffer[sizeof(double) + sizeof(double) + sizeof(time_buffer)];
+    char sensor_buffer[sizeof(double) + sizeof(double)];
     attr.mq_maxmsg = 10;
-    attr.mq_msgsize = sizeof(double) + sizeof(double) + sizeof(time_buffer);
+    attr.mq_msgsize = sizeof(double) + sizeof(double);
     // open i2c bus
     int fdev = open(I2C_DEV_PATH, O_RDWR); 
     if (fdev < 0) 
@@ -152,7 +148,7 @@ int main()
             printf ("\n\rError in writing command to humidity.");
             exit(1);
         }
-        sleep(2);
+        sleep(1);	//delay of 1 second before read operation
         rv = read (fdev, buf1, 3);
         if(rv < 0)
         {
@@ -169,15 +165,10 @@ int main()
         humidity_sensor_data &= ~0x003;
         
         humidity = (-6.0 + 125.0 / 65536 * (double) humidity_sensor_data);       
-        
-        t = time(NULL);
-        display_time = localtime(&t);
-        strftime(time_buffer,sizeof(time_buffer),"%m/%d/%Y--%H:%M:%S", display_time);
                 
     	memcpy(sensor_buffer, &temperature, sizeof(double));
     	memcpy(sensor_buffer + sizeof(double), &humidity, sizeof(double));
-    	memcpy(sensor_buffer + sizeof(double) + sizeof(double), time_buffer, sizeof(time_buffer));
-    	if(mq_send(mqd, sensor_buffer, sizeof(double) + sizeof(double) + sizeof(time_buffer), 1) == -1)
+    	if(mq_send(mqd, sensor_buffer, sizeof(double) + sizeof(double), 1) == -1)
     	{
     	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
     	}
