@@ -52,7 +52,6 @@ static void signal_handler(int signal)
      }
     signal_indication = true;
     graceful_exit();
-    exit(0);
 }
 
 void func(int connfd)
@@ -72,6 +71,10 @@ void func(int connfd)
 	memcpy(&temperature_data, buff, sizeof(double));
 	memcpy(&humidity_data, buff + sizeof(double), sizeof(double));
 	sprintf(toClient, "Temperature = %0.2lf and Humidity = %0.2lf", temperature_data, humidity_data);
+	if(signal_indication)
+	{
+	    break;
+	}
 	bytes_sent = send(connfd, toClient, strlen(toClient) + 1, 0);
 	if(bytes_sent == -1)
 	{
@@ -166,7 +169,7 @@ int main()
     // Function for chatting between client and server
         func(connfd);
     }
-    // After chatting close the socket
+    // After chatting close the socket    
     close(sockfd);
     close(connfd);
     printf("\n\rConnection closed...");

@@ -21,7 +21,7 @@
 
 void func(int sockfd)
 {
-    char buff[50];
+    char buff[42];
     int rv;
     //int n;
     while(1) 
@@ -60,7 +60,7 @@ int main()
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
-    servaddr.sin_addr.s_addr = inet_addr("128.138.189.252"); 
+    servaddr.sin_addr.s_addr = inet_addr("10.0.0.54"); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
    
