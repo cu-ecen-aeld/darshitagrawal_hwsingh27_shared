@@ -57,7 +57,7 @@ static void signal_handler(int signal)
 
 void func(int connfd)
 {
-    int bytes_sent;
+    int bytes_sent, package_count = 1;
     char buff[sizeof(double) + sizeof(double)];
     char toClient[50];
     unsigned int priority;
@@ -78,6 +78,8 @@ void func(int connfd)
 	    printf("\n\rError in sending bytes.");
 	    return;
 	}
+	printf("\n\rPackage %d sent with %d bytes.", package_count, bytes_sent);
+	package_count++;
     }
 }
 

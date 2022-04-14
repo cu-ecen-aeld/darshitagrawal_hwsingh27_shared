@@ -22,10 +22,12 @@
 void func(int sockfd)
 {
     char buff[50];
+    int rv;
     //int n;
     while(1) 
     {
-        read(sockfd, buff, sizeof(buff));
+        rv = recv(sockfd, buff, sizeof(buff), 0);
+        printf("\n\r%d bytes were received", rv);
         printf("\n\r%s", buff);
         if ((strncmp(buff, "exit", 4)) == 0) 
         {
@@ -58,7 +60,7 @@ int main()
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
-    servaddr.sin_addr.s_addr = inet_addr("10.0.0.56"); 
+    servaddr.sin_addr.s_addr = inet_addr("128.138.189.252"); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
    
