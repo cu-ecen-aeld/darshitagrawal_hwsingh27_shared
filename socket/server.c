@@ -70,6 +70,7 @@ void func(int connfd)
 	}
 	memcpy(&temperature_data, buff, sizeof(double));
 	memcpy(&humidity_data, buff + sizeof(double), sizeof(double));
+	printf("\n\rFrom Message Queue: Temperature = %0.2lf and Humidity = %0.2lf", temperature_data, humidity_data);
 	sprintf(toClient, "Temperature = %0.2lf and Humidity = %0.2lf", temperature_data, humidity_data);
 	if(signal_indication)
 	{
