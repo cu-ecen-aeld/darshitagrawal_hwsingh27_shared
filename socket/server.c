@@ -102,7 +102,7 @@ int main()
     {
         printf("\n\rError in registering SIG_ERR.");
         graceful_exit();
-        exit(1);
+        return -1;
     }
 
     rs = signal(SIGTERM, signal_handler);
@@ -110,7 +110,7 @@ int main()
     {
         printf("\n\rError in registering SIGTERM.");
         graceful_exit();
-        exit(1);
+        return -1;
     }
     
     // socket create and verification
@@ -118,11 +118,18 @@ int main()
     if (sockfd == -1) 
     {
 	printf("\n\rsocket creation failed. Error: %s", strerror(errno));
-	exit(0);
+	return -1;
     }
     else
     {
 	printf("Socket successfully created..\n");
+    }
+    
+    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){1}, sizeof(int)) == -1)
+    {
+        printf("\n\rError in setting up socket options. Error: %s", strerror(errno));
+        graceful_exit(); 
+        return -1;
     }
     bzero(&servaddr, sizeof(servaddr));
     
