@@ -30,7 +30,11 @@ void graceful_exit()
 {
     if(sockfd > -1)
     {
-        shutdown(sockfd, SHUT_RDWR);
+        int rv = shutdown(sockfd, SHUT_RDWR);
+        if(rv)
+        {
+            printf("\n\rError in shutdown. Error: %s", strerror(errno));
+        }
     }
 }
 
@@ -113,7 +117,7 @@ int main()
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) 
     {
-	printf("socket creation failed...\n");
+	printf("\n\rsocket creation failed. Error: %s", strerror(errno));
 	exit(0);
     }
     else
@@ -130,7 +134,7 @@ int main()
     // Binding newly created socket to given IP and verification
     if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0)
     {
-        printf("socket bind failed...\n");
+        printf("\n\rsocket bind failed. Error: %s", strerror(errno));
 	exit(0);
     }
     else
@@ -140,7 +144,7 @@ int main()
     // Now server is ready to listen and verification
     if ((listen(sockfd, 5)) != 0) 
     {
-	printf("Listen failed...\n");
+	printf("\n\rListen failed. Error: %s", strerror(errno));
 	exit(0);
     }
     else
@@ -160,7 +164,7 @@ int main()
         connfd = accept(sockfd, (SA*)&cli, (socklen_t*)&len);
         if (connfd < 0) 
         {
-	    printf("server accept failed...\n");
+	    printf("\n\rserver accept failed. Error: %s", strerror(errno));
 	    exit(0);
         }
         else
