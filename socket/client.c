@@ -27,22 +27,31 @@ void func(int sockfd)
     while(1) 
     {
         rv = recv(sockfd, buff, sizeof(buff), 0);
-        printf("\n\r%d bytes were received", rv);
         printf("\n\r%s", buff);
+        printf("\n\r%d bytes were received", rv);
         if ((strncmp(buff, "exit", 4)) == 0) 
         {
             printf("Client Exit...\n");
             break;
         }
-        usleep(500000);
+        //usleep(500000);
     }
 }
    
-int main()
+int main(int argc, char *argv[])
 {
     int sockfd;
     struct sockaddr_in servaddr;
-   
+    char IP[20];
+    
+    if(argc != 2)
+    {
+        printf("\n\rPlease enter correct number of arguments with IP Address of the server.");
+        return -1;
+    }
+    printf("\n\rConnecting to the server.");
+    strcpy(IP, argv[1]);
+    printf("\n\rContents of IP array = %s", IP);
     // socket creation
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     // socket verification
@@ -60,7 +69,7 @@ int main()
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
-    servaddr.sin_addr.s_addr = inet_addr("10.0.0.54"); 
+    servaddr.sin_addr.s_addr = inet_addr(IP); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
    
