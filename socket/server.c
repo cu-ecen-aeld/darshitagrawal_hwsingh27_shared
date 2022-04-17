@@ -22,12 +22,17 @@
 
 struct mq_attr attr;
 mqd_t mqd;
-int sockfd;
+int sockfd, connfd;
 bool signal_indication = false;
 // Function designed for chat between client and server.
 
 void graceful_exit()
 {
+    int bytes_sent = send(connfd, "exit", strlen("exit") + 1, 0);
+    if(bytes_sent == -1)
+    {
+        printf("\n\rTermination signal to the client could not be sent. Error: %s", strerror(errno));
+    }
     if(sockfd > -1)
     {
         int rv = shutdown(sockfd, SHUT_RDWR);
@@ -94,7 +99,7 @@ void func(int connfd)
 // Driver function
 int main()
 {
-    int connfd, len;
+    int len;
     struct sockaddr_in servaddr, cli;
     
     sig_t rs = signal(SIGINT, signal_handler);

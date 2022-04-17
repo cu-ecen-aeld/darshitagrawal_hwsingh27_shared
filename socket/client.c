@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 //macros
 #define MAX 80
@@ -27,6 +28,11 @@ void func(int sockfd)
     while(1) 
     {
         rv = recv(sockfd, buff, sizeof(buff), 0);
+        if(rv == -1)
+        {
+            printf("\n\rError: %s", strerror(errno));
+            return;
+        }
         printf("\n\r%s", buff);
         printf("\n\r%d bytes were received", rv);
         if ((strncmp(buff, "exit", 4)) == 0) 
@@ -57,12 +63,12 @@ int main(int argc, char *argv[])
     // socket verification
     if (sockfd == -1) 
     {
-        printf("Socket creation failed!!\n");
-        exit(0);
+        printf("\n\rSocket creation failed!!Error: %s", strerror(errno));
+        return -1;
     }
     else
     {
-        printf("Socket creation successful!!\n");
+        printf("\n\rSocket creation successful!!");
     }
     bzero(&servaddr, sizeof(servaddr));
    
@@ -76,12 +82,13 @@ int main(int argc, char *argv[])
     // connect the client socket to server socket
     if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) 
     {
-        printf("connection with the server failed...\n");
-        exit(0);
+        printf("\n\rconnection with the server failed. Error: %s", strerror(errno));
+        close(sockfd);
+        return -1;
     }
     else
     {
-        printf("connected to the server..\n");
+        printf("\n\rconnected to the server.");
     }
    
     // function for chat
