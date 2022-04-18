@@ -27,7 +27,7 @@ void func(int sockfd)
     //int n;
     while(1) 
     {
-        rv = recv(sockfd, buff, sizeof(buff), 0);
+        while((rv = recv(sockfd, buff, sizeof(buff), 0)) != 41);
         if(rv == -1)
         {
             printf("\n\rError: %s", strerror(errno));

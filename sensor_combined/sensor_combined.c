@@ -2,8 +2,9 @@
  * https://github.com/torvalds/linux/blob/master/include/uapi/linux/i2c-dev.h
  * https://github.com/torvalds/linux/blob/master/include/linux/i2c.h
  * https://olegkutkov.me/2017/08/10/mlx90614-raspberry/
+ * https://olegkutkov.me/2018/02/21/htu21d-raspberry-pi/ 
  *
- * Modified by: Harshwardhan Singh
+ * Modified by: Harshwardhan Singh and Darshit Agrawal
  */
  
 #include <sys/ioctl.h>
