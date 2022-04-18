@@ -5,7 +5,7 @@ ifeq ($(CC),)
 endif
 
 ifeq ($(CFLAGS),)
-	CFLAGS= -g -Wall -Werror
+	CFLAGS= -g -Wall -Werror -ggdb
 endif
 
 ifeq ($(LDFLAGS),)
