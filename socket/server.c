@@ -81,7 +81,7 @@ void func(int connfd)
 	memcpy(&temperature_data, buff, sizeof(double));
 	memcpy(&humidity_data, buff + sizeof(double), sizeof(double));
 	
-#ifdef DEBUG
+#if (DEBUG == 1)
 	printf("\n\rFrom Message Queue: Temperature = %0.2lf and Humidity = %0.2lf", temperature_data, humidity_data);
 #endif
 	sprintf(toClient, "Temperature = %0.2lf and Humidity = %0.2lf", temperature_data, humidity_data);
@@ -95,7 +95,7 @@ void func(int connfd)
 	    printf("\n\rError in sending bytes.");
 	    return;
 	}
-#ifdef DEBUG
+#if (DEBUG == 1)
 	printf("\n\rPackage %d sent with %d bytes.", package_count, bytes_sent);
 #endif
 	package_count++;
