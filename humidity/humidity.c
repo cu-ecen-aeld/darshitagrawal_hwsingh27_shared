@@ -38,7 +38,7 @@ int read_dht11( unsigned pin) {
 
 
 
-void cleanup(void) {
+gpioSignalFunc_t cleanup(void) {
 
     signal_indication = true;
     // This gets registered with atexit() to run at program termination.
