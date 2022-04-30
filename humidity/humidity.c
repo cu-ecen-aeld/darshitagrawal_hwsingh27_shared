@@ -1,10 +1,10 @@
 /*
- * Reference: https://olegkutkov.me/2018/02/21/htu21d-raspberry-pi/    
- * Author: Darshit Agrawal
- 
- Copyright 2018, Jim Studt jim@studt.net
- SPDX-License-Identifier: BSD-3-Clause
+ * Reference: https://github.com/jimstudt/dht11-pigpio/blob/master/dht11-pigpio.c
+ * Edited by: Darshit Agrawal
 */
+
+// Copyright 2018, Jim Studt jim@studt.net
+// SPDX-License-Identifier: BSD-3-Clause
 
 #include <pigpio.h>
 #include <stdio.h>
